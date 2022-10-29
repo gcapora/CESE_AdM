@@ -4,7 +4,7 @@ Guillermo F. Caporaletti <gfcaporaletti@undav.edu.ar>, Arquitectura de Microproc
 
 ## Preguntas orientadoras
 
-1. Describa brevemente los diferentes perfiles de familias de microprocesadores/microcontroladores de ARM. Explique alguna de sus diferencias características.
+### 1. Describa brevemente los diferentes perfiles de familias de microprocesadores/microcontroladores de ARM. Explique alguna de sus diferencias características.
 
 Son tres familias:
 - ARM Cortex A: Utilizados por los celulares. Orientado a aplicaciones. Requiere un Tick de 10 ms aprox. para satisfacer las necesidades multimedia y de las aplicaciones. Tiene caché para acelerar funcionamiento. Tiene MMU (Unidad de Gestión de Memoria) para evitar que una aplicación (proceso) lea o pise la memoria de otra. Usa Android usualmente. 
@@ -13,7 +13,8 @@ Son tres familias:
 
 ## Cortex M
 
-1. Describa brevemente las diferencias entre las familias de procesadores Cortex M0, M3 y M4.
+### 1. Describa brevemente las diferencias entre las familias de procesadores Cortex M0, M3 y M4.
+
 - M0: Con arquitectura de memoria Von Neuman. Memoria RAM (datos) y Flash (código) comparten un mismo bus. SysTick opcional. No posee MPU. Tiene un conjunto (set) de instrucciones acotado. Esto deriva en que necesita más instrucciones que un M3 para hacer lo mismo. Como ventaja: es más económico.  
 - M3: Con arquitectura Hardvard de memoria. Memoria RAM y Flash tiene busses diferentes. Esto le permite mayor velocidad. Posee SysTick. MPU opcional. Bit-banding como opcional. Incorpora todas las omstrucciones Thumb-1 y Thumb-2. 
 - M4: Es básicamente un M3 aunque: Incorpora el FPU (punto flotante) opcional. Incorpora funciones DSP.
