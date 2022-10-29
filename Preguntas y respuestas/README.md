@@ -5,6 +5,7 @@ Guillermo F. Caporaletti <gfcaporaletti@undav.edu.ar>, Arquitectura de Microproc
 ## Preguntas orientadoras
 
 1. Describa brevemente los diferentes perfiles de familias de microprocesadores/microcontroladores de ARM. Explique alguna de sus diferencias características.
+
 Son tres familias:
 - ARM Cortex A: Utilizados por los celulares. Orientado a aplicaciones. Requiere un Tick de 10 ms aprox. para satisfacer las necesidades multimedia y de las aplicaciones. Tiene caché para acelerar funcionamiento. Tiene MMU (Unidad de Gestión de Memoria) para evitar que una aplicación (proceso) lea o pise la memoria de otra. Usa Android usualmente. 
 - ARM Cortex M: Microcontroladores de propósito general; para sistemas embebidos compactos. No tiene caché, porque esto haría que su funcionamiento sea menos determinista. No tiene MMU (Unidad de Gestión de Memoria), porque le quitaría recursos: la responsabilidad de utilizar correctamente la memoria recae en el programador. Tiene MPU (Unidad de Protección de Memoria), que limita o protege algunas áreas de memoria. Utiliza usualmente Bare-metal o RTOS. 
