@@ -4,6 +4,4 @@ Guillermo Caporletti, Área de trabajo del curso de Arquitecturas de Microproces
 
 ## Carpetas
 
-Preguntas y respuestas
-Tiene el archivo README.md con las respuestas que voy llenando.
-
+Preguntas y respuestas: Tiene el archivo README.md con las respuestas que voy llenando.
