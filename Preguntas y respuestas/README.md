@@ -30,7 +30,9 @@ Es una arquitectura en la que casi todas (menos 2) sus instrucciones sólo actú
 
 ### 4. ¿Cómo es el mapa de memoria de la familia?
 5. ¿Qué ventajas presenta el uso de los “shadowed pointers” del PSP y el MSP?
-6. Describa los diferentes modos de privilegio y operación del Cortex M, sus relaciones y como se conmuta de uno al otro. Describa un ejemplo en el que se pasa del modo privilegiado a no priviligiado y nuevamente a privilegiado.
+
+### 6. Describa los diferentes modos de privilegio y operación del Cortex M, sus relaciones y como se conmuta de uno al otro. Describa un ejemplo en el que se pasa del modo privilegiado a no priviligiado y nuevamente a privilegiado.
+
 7. ¿Qué se entiende por modelo de registros ortogonal? Dé un ejemplo
 8. ¿Qué ventajas presenta el uso de intrucciones de ejecución condicional (IT)? Dé un ejemplo
 9. Describa brevemente las excepciones más prioritarias (reset, NMI, Hardfault).
@@ -42,12 +44,15 @@ los periféricos?
 14. ¿Qué es el CMSIS? ¿Qué función cumple? ¿Quién lo provee? ¿Qué ventajas aporta?
 15. Cuando ocurre una interrupción, asumiendo que está habilitada ¿Cómo opera el microprocesador para atender a la subrutina correspondiente? Explique con un ejemplo
 17. ¿Cómo cambia la operación de stacking al utilizar la unidad de punto flotante?
-16. Explique las características avanzadas de atención a interrupciones: tail chaining y late
-arrival.
-17. ¿Qué es el systick? ¿Por qué puede afirmarse que su implementación favorece la
-portabilidad de los sistemas operativos embebidos?
-18. ¿Qué funciones cumple la unidad de protección de memoria (MPU)?
-19. ¿Cuántas regiones pueden configurarse como máximo? ¿Qué ocurre en caso de haber
+16. Explique las características avanzadas de atención a interrupciones: tail chaining y late arrival.
+
+### 17. ¿Qué es el systick? ¿Por qué puede afirmarse que su implementación favorece la portabilidad de los sistemas operativos embebidos?
+
+Es un conjunto de funciones que opera una base de tiempo. El hecho que diversos sistemas utilicen el mismo conjunto de funciones para la base de tiempo (que regula el multitasking, por ejemplo) hace que a la hora de programar no nos preocupemos cómo o con qué recursos de hardware se logra esta base de tiempo. Entonces facilita la portabilidad más allá del micro utilizado.
+
+### 18. ¿Qué funciones cumple la unidad de protección de memoria (MPU)?
+
+20. ¿Cuántas regiones pueden configurarse como máximo? ¿Qué ocurre en caso de haber
 solapamientos de las regiones? ¿Qué ocurre con las zonas de memoria no cubiertas por las
 regiones definidas?
 20. ¿Para qué se suele utilizar la excepción PendSV? ¿Cómo se relaciona su uso con el resto
