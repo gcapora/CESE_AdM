@@ -1,9 +1,9 @@
 # Arquitectura de Microprocesadores
 
-Área de trabajo del curso de Arquitecturas de Microprocesadores, CESE, 18co.
+Guillermo Caporletti, Área de trabajo del curso de Arquitecturas de Microprocesadores, CESE, 18co.
 
 ## Carpetas
 
-Preguntas
-Tiene el archivo .odt con las respuestas que voy llenando.
+Preguntas y respuestas
+Tiene el archivo README.md con las respuestas que voy llenando.
 
