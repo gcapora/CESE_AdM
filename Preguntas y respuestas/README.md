@@ -19,11 +19,12 @@ Son tres familias:
 - M3: Con arquitectura Hardvard de memoria. Memoria RAM y Flash tiene busses diferentes. Esto le permite mayor velocidad. Posee SysTick. MPU opcional. Bit-banding como opcional. Incorpora todas las omstrucciones Thumb-1 y Thumb-2. 
 - M4: Es básicamente un M3 aunque: Incorpora el FPU (punto flotante) opcional. Incorpora funciones DSP.
 
-2. ¿Por qué se dice que el set de instrucciones Thumb permite mayor densidad de código? Explique
+### 2. ¿Por qué se dice que el set de instrucciones Thumb permite mayor densidad de código? Explique
+
 Las instrucciones Thumb (o Pulgar) permiten intercalar instruciones de 32 bits y de 16 bits. Cuando queremos manejar datos de 16 bits, hay desperdicio de recursos (en los 16 bits que sobran de aquellos 32). Entonces, permitiendo el modo Thumb, puede hacer lo mismo con instrucciones de la mitad de tamaño. 
 Existen dos versiones de modo Thumb: El primero era switchear entre modo 32 y modo 16. El modo Thumb-2 permite intercalar las funciones de 16 y 32 bits.
 
-3. ¿Qué entiende por arquitectura load-store? ¿Qué tipo de instrucciones no posee este tipo de arquitectura?
+### 3. ¿Qué entiende por arquitectura load-store? ¿Qué tipo de instrucciones no posee este tipo de arquitectura?
 4. ¿Cómo es el mapa de memoria de la familia?
 5. ¿Qué ventajas presenta el uso de los “shadowed pointers” del PSP y el MSP?
 6. Describa los diferentes modos de privilegio y operación del Cortex M, sus relaciones y como se conmuta de uno al otro. Describa un ejemplo en el que se pasa del modo privilegiado a no priviligiado y nuevamente a privilegiado.
