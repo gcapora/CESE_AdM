@@ -25,7 +25,10 @@ Las instrucciones Thumb (o Pulgar) permiten intercalar instruciones de 32 bits y
 Existen dos versiones de modo Thumb: El primero era switchear entre modo 32 y modo 16. El modo Thumb-2 permite intercalar las funciones de 16 y 32 bits.
 
 ### 3. ¿Qué entiende por arquitectura load-store? ¿Qué tipo de instrucciones no posee este tipo de arquitectura?
-4. ¿Cómo es el mapa de memoria de la familia?
+
+Es una arquitectura en la que casi todas (menos 2) sus instrucciones sólo actúan sobre los registros del micro. Porque así no hay que esperar la lectura a través del bus. Las dos instrucciones que no cumplen con esta estructura son precisamente LOAD y STORE, queleen y escriben en memoria lo que se pidió para la instrucción o su resultado.
+
+### 4. ¿Cómo es el mapa de memoria de la familia?
 5. ¿Qué ventajas presenta el uso de los “shadowed pointers” del PSP y el MSP?
 6. Describa los diferentes modos de privilegio y operación del Cortex M, sus relaciones y como se conmuta de uno al otro. Describa un ejemplo en el que se pasa del modo privilegiado a no priviligiado y nuevamente a privilegiado.
 7. ¿Qué se entiende por modelo de registros ortogonal? Dé un ejemplo
