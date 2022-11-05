@@ -30,7 +30,7 @@ Es una arquitectura en la que casi todas (menos 2) sus instrucciones sólo actú
 
 ### 4. ¿Cómo es el mapa de memoria de la familia?
 
-La memoria del Cortex dispone 4 Gb: asignados con 32 bits. En estos 4 Gb se puede leer y escribir memoria RAM (datos), EPROM (programa), puertos externos y otro tipo de mapeos como el el bit-banding. 
+La memoria del Cortex dispone 4 Gb: asignados con 32 bits. En estos 4 Gb se puede leer y escribir memoria SRAM (ultra rápida, cercana al micro), RAM (datos), Flash (programa), puertos externos y otro tipo de mapeos como el el bit-banding. Cada función o tipo de acceso tiene un rango de memoria exclusivo y determinado por ARM.
 
 5. ¿Qué ventajas presenta el uso de los “shadowed pointers” del PSP y el MSP?
 
@@ -42,10 +42,17 @@ Junto con esto coexisten los modos de operación, pensados para el manejo de pro
 
 En este modo Handler podría volver a setearse el flag en modo privilegiado nuevamente.
 
-7. ¿Qué se entiende por modelo de registros ortogonal? Dé un ejemplo
+### 7. ¿Qué se entiende por modelo de registros ortogonal? Dé un ejemplo
+
+Que cualquier registro puede ser utilizado para cualquier operación por una instrucción. No hay registros especiales para cada instrucción. Los registros son de propósito general.
+
 8. ¿Qué ventajas presenta el uso de intrucciones de ejecución condicional (IT)? Dé un ejemplo
 9. Describa brevemente las excepciones más prioritarias (reset, NMI, Hardfault).
-10. Describa las funciones principales de la pila. ¿Cómo resuelve la arquitectura el llamado a funciones y su retorno?
+
+### 10. Describa las funciones principales de la pila. ¿Cómo resuelve la arquitectura el llamado a funciones y su retorno?
+
+Su principal función es pasar parámetros a una función, almacenar sus valores durante su operación y devolverlos. Aunque, en ARM, los primeros parámetros son pasados y devueltos a través de los registros r0 a r3. 
+
 11. Describa la secuencia de reset del microprocesador.
 12. ¿Qué entiende por “core peripherals”? ¿Qué diferencia existe entre estos y el resto de los periféricos?
 13. ¿Cómo se implementan las prioridades de las interrupciones? Dé un ejemplo.
@@ -62,8 +69,7 @@ Es un conjunto de funciones que opera una base de tiempo. El hecho que diversos 
 
 Bloquea la posibilidad de escribir determinadas partes de memoria cuando se trabaja em modo no-privilegiado. Esto es una protección para que un proceso determinado no modifique áreas de memoria críticas que no debe modificar.
 
-20. ¿Cuántas regiones pueden configurarse como máximo? ¿Qué ocurre en caso de haber solapamientos de las regiones? ¿Qué ocurre con las zonas de memoria no cubiertas por las
-regiones definidas?
+20. ¿Cuántas regiones pueden configurarse como máximo? ¿Qué ocurre en caso de haber solapamientos de las regiones? ¿Qué ocurre con las zonas de memoria no cubiertas por las regiones definidas?
 20. ¿Para qué se suele utilizar la excepción PendSV? ¿Cómo se relaciona su uso con el resto de las excepciones? Dé un ejemplo.
 21. ¿Para qué se suele utilizar la excepción SVC? Expliquelo dentro de un marco de un sistema operativo embebido.
 
