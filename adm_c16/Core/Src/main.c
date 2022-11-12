@@ -35,7 +35,8 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define N_MUESTRAS		16384		// Un número grande para que se demore un poco
+#define N_MUESTRAS		50
+						//16384		// Un número grande para que se demore un poco
 
 /* USER CODE END PM */
 
@@ -43,8 +44,6 @@
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
-uint32_t senial1[N_MUESTRAS];		// Estas variables las dejo globales para
-uint32_t senial2[N_MUESTRAS];		// contabilizar mejor el espacio utilizado.
 
 /* USER CODE END PV */
 
@@ -146,15 +145,18 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
   // **************************************************************************
+  uint32_t senial1[N_MUESTRAS];		// Estas variables las dejo globales para
+  uint32_t senial2[N_MUESTRAS];		// contabilizar mejor el espacio utilizado.
+
   PrivilegiosSVC ();
-  const uint32_t Resultado = asm_sum (5, 3);
+  const uint32_t suma = asm_sum (5, 3);
 
   uint32_t t0 = HAL_GetTick();								// Tomo tiempo inicial de procesamiento
   ones(senial1, N_MUESTRAS);
   productoEscalar32(senial1, senial2, N_MUESTRAS, 1);		// Esto equivale a copiar un vector en otro
   for (uint8_t i=0; i<9; i++) {								// Ahora vamos a multiplicar su contenido
 	  	  	  	  	  	  	  	  	  	  	  	  	  	  	// por Resultado una cantidad de veces
-	  productoEscalar32(senial2, senial2, N_MUESTRAS, Resultado);
+	  productoEscalar16(senial2, senial2, N_MUESTRAS, suma-1);
   }
   uint32_t tiempo_de_procesamiento = HAL_GetTick() - t0;	// ¿Cuánto tardé?
 
@@ -349,6 +351,11 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+/**
+  * @brief Inicializa un vector con zeros
+  * @param
+  * @retval None
+  */
 void zeros(uint32_t * vector, uint32_t longitud)
 {
 	for (uint32_t i=0; i<longitud; i++) {
@@ -356,6 +363,11 @@ void zeros(uint32_t * vector, uint32_t longitud)
 	}
 }
 
+/**
+  * @brief Inicializa un vector con unos
+  * @param
+  * @retval None
+  */
 void ones(uint32_t * vector, uint32_t longitud)
 {
 	for (uint32_t i=0; i<longitud; i++) {
@@ -363,12 +375,44 @@ void ones(uint32_t * vector, uint32_t longitud)
 	}
 }
 
+/**
+  * @brief Multiplica los elements de un vector
+  * @param
+  * @retval None
+  */
 void productoEscalar32(uint32_t * vectorIn, uint32_t * vectorOut, uint32_t longitud, uint32_t escalar)
 {
 	for (uint32_t i=0; i<longitud; i++) {
 		vectorOut[i] = vectorIn[i] * escalar;
 	}
 }
+
+/**
+  * @brief Multiplica los elementos de un vector de uint16_t
+  * @param
+  * @retval None
+  */
+void productoEscalar16(uint16_t * vectorIn, uint16_t * vectorOut, uint32_t longitud, uint16_t escalar)
+{
+	for (uint32_t i=0; i<longitud; i++) {
+		vectorOut[i] = vectorIn[i] * escalar;
+	}
+}
+
+/**
+  * @brief Multiplica los elementos de un vector de uint16_t saturando en 12 bits.
+  * @param
+  * @retval None
+  */
+void productoEscalar12(uint16_t * vectorIn, uint16_t * vectorOut, uint32_t longitud, uint16_t escalar)
+{
+	uint32_t Out;
+	for (uint32_t i=0; i<longitud; i++) {
+		Out = (uint32_t) vectorIn[i] * (uint32_t) escalar;
+		vectorOut[i] = Out > 0xFFF ? 0xFFF : (uint16_t) Out;
+	}
+}
+
 /* USER CODE END 4 */
 
 /**

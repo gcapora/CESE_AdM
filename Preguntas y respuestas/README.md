@@ -46,7 +46,12 @@ En este modo Handler podría volver a setearse el flag en modo privilegiado nuev
 
 Que cualquier registro puede ser utilizado para cualquier operación por una instrucción. No hay registros especiales para cada instrucción. Los registros son de propósito general.
 
-8. ¿Qué ventajas presenta el uso de intrucciones de ejecución condicional (IT)? Dé un ejemplo
+### 8. ¿Qué ventajas presenta el uso de intrucciones de ejecución condicional (IT)? Dé un ejemplo
+
+Básicamente que no debe cambiar la dirección de ejecución del código, cuestión que implica algún retraso para volver a leer código, datos y cargar registros. Para condicionales con pocas instrucciones, se puede utilizar la ejecución condicional y así se logra que la ejecución de código no se vea interrumpida. 
+
+Ejemplo en C (en verdad debería codificarse en Assembler): a = r>29 ? 29 : r; En ese ejemplo, se pierde demasiado tiempo si el procesamiento de código de be cambiar de dirección para hacer esta comparación tan simple.
+
 9. Describa brevemente las excepciones más prioritarias (reset, NMI, Hardfault).
 
 ### 10. Describa las funciones principales de la pila. ¿Cómo resuelve la arquitectura el llamado a funciones y su retorno?
@@ -56,7 +61,11 @@ Su principal función es pasar parámetros a una función, almacenar sus valores
 11. Describa la secuencia de reset del microprocesador.
 12. ¿Qué entiende por “core peripherals”? ¿Qué diferencia existe entre estos y el resto de los periféricos?
 13. ¿Cómo se implementan las prioridades de las interrupciones? Dé un ejemplo.
-14. ¿Qué es el CMSIS? ¿Qué función cumple? ¿Quién lo provee? ¿Qué ventajas aporta?
+
+###14. ¿Qué es el CMSIS? ¿Qué función cumple? ¿Quién lo provee? ¿Qué ventajas aporta?
+
+Es un estandart de hardware y funciones para la arquitectura Cortex. Estandariza funciones que deben ser implementada en los Cortex para acceder a periféricos y recursos de hardware del micro. De este modo, se utilizan en C y no es necesario utilizar Assembler. Es un estandart establecido por ARM. Lo debe implementar cada fabricante de micro con arquitectura Cortex. La ventaja es que ayuda a migrar de un micro Cortex a otro. 
+
 15. Cuando ocurre una interrupción, asumiendo que está habilitada ¿Cómo opera el microprocesador para atender a la subrutina correspondiente? Explique con un ejemplo.
 17. ¿Cómo cambia la operación de stacking al utilizar la unidad de punto flotante?
 16. Explique las características avanzadas de atención a interrupciones: tail chaining y late arrival.
