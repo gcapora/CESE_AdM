@@ -62,7 +62,7 @@ Su principal función es pasar parámetros a una función, almacenar sus valores
 12. ¿Qué entiende por “core peripherals”? ¿Qué diferencia existe entre estos y el resto de los periféricos?
 13. ¿Cómo se implementan las prioridades de las interrupciones? Dé un ejemplo.
 
-###14. ¿Qué es el CMSIS? ¿Qué función cumple? ¿Quién lo provee? ¿Qué ventajas aporta?
+### 14. ¿Qué es el CMSIS? ¿Qué función cumple? ¿Quién lo provee? ¿Qué ventajas aporta?
 
 Es un estandart de hardware y funciones para la arquitectura Cortex. Estandariza funciones que deben ser implementada en los Cortex para acceder a periféricos y recursos de hardware del micro. De este modo, se utilizan en C y no es necesario utilizar Assembler. Es un estandart establecido por ARM. Lo debe implementar cada fabricante de micro con arquitectura Cortex. La ventaja es que ayuda a migrar de un micro Cortex a otro. 
 
