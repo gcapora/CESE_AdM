@@ -52,6 +52,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
+void asm_zeros (uint32_t * vector, uint32_t longitud);   // Función en asembler
 
 /* USER CODE END PFP */
 
@@ -152,6 +153,8 @@ int main(void)
   const uint32_t suma = asm_sum (5, 3);
 
   uint32_t t0 = HAL_GetTick();								// Tomo tiempo inicial de procesamiento
+  asm_zeros (senial1, N_MUESTRAS);   						// Función en asembler
+
   ones(senial1, N_MUESTRAS);
   productoEscalar32(senial1, senial2, N_MUESTRAS, 1);		// Esto equivale a copiar un vector en otro
   for (uint8_t i=0; i<9; i++) {								// Ahora vamos a multiplicar su contenido
