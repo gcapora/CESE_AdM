@@ -82,11 +82,24 @@ Bloquea la posibilidad de escribir determinadas partes de memoria cuando se trab
 20. ¿Para qué se suele utilizar la excepción PendSV? ¿Cómo se relaciona su uso con el resto de las excepciones? Dé un ejemplo.
 21. ¿Para qué se suele utilizar la excepción SVC? Expliquelo dentro de un marco de un sistema operativo embebido.
 
-## ISA
+## ISA (Instruction Set Architecture)
 
-1. ¿Qué son los sufijos y para qué se los utiliza? Dé un ejemplo.
-2. ¿Para qué se utiliza el sufijo ‘s’? Dé un ejemplo.
-3. ¿Qué utilidad tiene la implementación de instrucciones de aritmética saturada? Dé un ejemplo con operaciones con datos de 8 bits.
-4. Describa brevemente la interfaz entre assembler y C ¿Cómo se reciben los argumentos de las funciones? ¿Cómo se devuelve el resultado? ¿Qué registros deben guardarse en la
-pila antes de ser modificados?
+### 1. ¿Qué son los sufijos y para qué se los utiliza? Dé un ejemplo.
+
+Sirven para ampliar la funcionalidad de una función de Assembler. Por ejemplo: actualizar las banderas (flags). O especificar si es un dato de 8 bits o 16 bits, con o sin signo. 
+
+### 2. ¿Para qué se utiliza el sufijo ‘s’? Dé un ejemplo.
+
+La instrucción "add" suma; y la instrucción "adds", además de sumar, actualiza las banderas a partir del resultado de esa suma. Esto se complementa con las instrucciones condicionales.
+
+### 3. ¿Qué utilidad tiene la implementación de instrucciones de aritmética saturada? Dé un ejemplo con operaciones con datos de 8 bits.
+
+Permite manejar el overflow. Puede ocurrir que no sepa si hubo overflow o no. Y un valor un poco más grande que el máximo retorna o uno negativo o uno muy chico (según el dato sea con o sin signo). Para tratamiento de señales, es mejor una saturación que un cambio tan grande en la salida de a operación. Si esta función ya está implementada en la ISA, me ahorro los condicionales previos.
+
+### 4. Describa brevemente la interfaz entre assembler y C ¿Cómo se reciben los argumentos de las funciones? ¿Cómo se devuelve el resultado? ¿Qué registros deben guardarse en la pila antes de ser modificados?
+
+Los primeros 4 argumentos de una función, se reciben por los registros. Se cargan allí y la función opera con los registros. Más parámetros, deben pasarse por la pila (stack). Si dentro de la función debo utilizar más registros, debo almacenarlos en la pila y luego recuperarlos antes de retornar la función (utilizando push {r4-r6} y pop {r4-r6} por ejemplo). 
+
+Para los valores que devuelve utiliza los registros r0 y r1. También puede actuar sobre memoria directamente, utilizando punteros.
+
 5. ¿Qué es una instrucción SIMD? ¿En qué se aplican y que ventajas reporta su uso? Dé un ejemplo.
