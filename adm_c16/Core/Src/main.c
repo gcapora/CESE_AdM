@@ -27,7 +27,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define N_MUESTRAS		50
+#define N_MUESTRAS		15
 
 /* USER CODE END PM */
 
@@ -111,7 +111,7 @@ int main(void)
 	  senial16[i]=50;
 	  senial16[i+1]=50;
   }
-  filtroVentana10(senial16, senial16b, N_MUESTRAS);	  // Probamos filtro ventana
+  asm_filtroVentana10(senial16, senial16b, N_MUESTRAS);	  // Probamos filtro ventana
 
 
 
