@@ -5,14 +5,6 @@
   * @brief          : Módulo principal del proyecto AdM
   ******************************************************************************
   * @attention
-  *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -36,7 +28,6 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 #define N_MUESTRAS		50
-						//16384		// Un número grande para que se demore un poco
 
 /* USER CODE END PM */
 
@@ -52,66 +43,14 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
+static void PrivilegiosSVC (void);
 void asm_zeros (uint32_t * vector, uint32_t longitud);   // Función en asembler
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-static void PrivilegiosSVC (void)
-{
-    // Obtiene valor del registro de 32 bits del procesador llamado "control".
-    // El registro guarda los siguientes estados:
-    // bit 2: Uso de FPU en el contexto actual. Usado=1, no usado=0.
-    // bit 1: Mapeo del stack pointer(sp). MSP=0, PSP=1.
-    // bit 0: Modo de ejecucion en Thread. Privilegiado=0, No privilegiado=1.
-    //        Recordar que este valor solo se usa en modo Thread. Las
-    //        interrupciones siempre se ejecutan en modo Handler con total
-    //        privilegio.
-    uint32_t x = __get_CONTROL ();
 
-    // Actividad de debug: Ver registro "control" y valor de variable "x".
-    //__BKPT (0);
-
-    x |= 1;
-    // bit 0 a modo No privilegiado.
-    __set_CONTROL (x);
-
-    // En este punto se estaria ejecutando en modo No privilegiado.
-    // Lectura del registro "control" para confirmar.
-    x = __get_CONTROL ();
-
-    // Actividad de debug: Ver registro "control" y valor de variable "x".
-    //__BKPT (0);
-
-    x &= ~1u;
-    // Se intenta volver a modo Privilegiado (bit 0, valor 0).
-    __set_CONTROL (x);
-
-    // Confirma que esta operacion es ignorada por estar ejecutandose en modo
-    // Thread no privilegiado.
-    x = __get_CONTROL ();
-
-    // Actividad de debug: Ver registro "control" y valor de variable "x".
-    //__BKPT (0);
-
-    // En este punto, ejecutando en modo Thread no privilegiado, la unica forma
-    // de volver a modo privilegiado o de realizar cualquier cambio que requiera
-    // modo privilegiado, es pidiendo ese servicio a un hipotetico sistema
-    // opertivo de tiempo real.
-    // Para esto se invoca por software a la interrupcion SVC (Supervisor Call)
-    // utilizando la instruccion "svc".
-    // No hay intrinsics para realizar esta tarea. Para utilizar la instruccion
-    // es necesario implementar una funcion en assembler. Ver el archivo
-    // asm_func.S.
-    asm_svc ();
-
-    // El sistema operativo (el handler de SVC) deberia haber devuelto el modo
-    // de ejecucion de Thread a privilegiado (bit 0 en valor 0).
-    x = __get_CONTROL ();
-
-    // Fin del ejemplo de SVC
-}
 /* USER CODE END 0 */
 
 /**
@@ -121,46 +60,65 @@ static void PrivilegiosSVC (void)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  // **************************************************************************
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
-
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
-
   /* Configure the system clock */
   SystemClock_Config();
-
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
-
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART3_UART_Init();
 
   /* USER CODE BEGIN 2 */
   // **************************************************************************
-  uint32_t senial1[N_MUESTRAS];		// Estas variables las dejo globales para
-  uint32_t senial2[N_MUESTRAS];		// contabilizar mejor el espacio utilizado.
+  // Variables locales a Main: (guardadas en la pila)
+  uint32_t senial1[N_MUESTRAS];
+  uint32_t senial2[N_MUESTRAS];
+  uint16_t senial16[N_MUESTRAS];
+  uint16_t senial16b[N_MUESTRAS];
+  senial1[N_MUESTRAS-1] = 99;
+  senial16[0] = 1;
+  for (uint8_t i=1; i<N_MUESTRAS; i++) {
+  	  senial16[i] = senial16[i-1] + 1;
+  }
 
+  // **************************************************************************
+  // Prueba de modos de privilegio
   PrivilegiosSVC ();
   const uint32_t suma = asm_sum (5, 3);
 
-  uint32_t t0 = HAL_GetTick();								// Tomo tiempo inicial de procesamiento
-  asm_zeros (senial1, N_MUESTRAS);   						// Función en asembler
-
+  uint32_t t0 = HAL_GetTick();							// Tomo tiempo inicial de procesamiento
+  // **************************************************************************
+  // Inicio prueba d eproductos escalares
+  // Asignación de valores...
+  asm_zeros (senial1, N_MUESTRAS);   					// Función en Assembler
   ones(senial1, N_MUESTRAS);
-  productoEscalar32(senial1, senial2, N_MUESTRAS, 1);		// Esto equivale a copiar un vector en otro
-  for (uint8_t i=0; i<9; i++) {								// Ahora vamos a multiplicar su contenido
-	  	  	  	  	  	  	  	  	  	  	  	  	  	  	// por Resultado una cantidad de veces
-	  productoEscalar16(senial2, senial2, N_MUESTRAS, suma-1);
+  productoEscalar32(senial1, senial2, N_MUESTRAS, 1);	// Esto equivale a copiar un vector en otro
+  for (uint8_t i=0; i<2; i++) {							// Ahora vamos a multiplicar su contenido por Resultado una cantidad de veces
+	  productoEscalar12(senial16, senial16, N_MUESTRAS, suma-1);
   }
+
+  // **************************************************************************
+  // Prueba de promedio ventana
+  zeros(senial16, N_MUESTRAS);
+  for (uint8_t i=5; i<N_MUESTRAS-1; i+=14) {
+	  senial16[i]=50;
+	  senial16[i+1]=50;
+  }
+  filtroVentana10(senial16, senial16b, N_MUESTRAS);	  // Probamos filtro ventana
+
+
+
+
+
+
   uint32_t tiempo_de_procesamiento = HAL_GetTick() - t0;	// ¿Cuánto tardé?
 
   // **************************************************************************
@@ -355,12 +313,73 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /**
+  * @Obtiene valor del registro de 32 bits del procesador llamado "control".
+  * @param
+  * @retval None
+  */
+static void PrivilegiosSVC (void)
+{
+    // Obtiene valor del registro de 32 bits del procesador llamado "control".
+    // El registro guarda los siguientes estados:
+    // bit 2: Uso de FPU en el contexto actual. Usado=1, no usado=0.
+    // bit 1: Mapeo del stack pointer(sp). MSP=0, PSP=1.
+    // bit 0: Modo de ejecucion en Thread. Privilegiado=0, No privilegiado=1.
+    //        Recordar que este valor solo se usa en modo Thread. Las
+    //        interrupciones siempre se ejecutan en modo Handler con total
+    //        privilegio.
+    uint32_t x = __get_CONTROL ();
+
+    // Actividad de debug: Ver registro "control" y valor de variable "x".
+    //__BKPT (0);
+
+    x |= 1;
+    // bit 0 a modo No privilegiado.
+    __set_CONTROL (x);
+
+    // En este punto se estaria ejecutando en modo No privilegiado.
+    // Lectura del registro "control" para confirmar.
+    x = __get_CONTROL ();
+
+    // Actividad de debug: Ver registro "control" y valor de variable "x".
+    //__BKPT (0);
+
+    x &= ~1u;
+    // Se intenta volver a modo Privilegiado (bit 0, valor 0).
+    __set_CONTROL (x);
+
+    // Confirma que esta operacion es ignorada por estar ejecutandose en modo
+    // Thread no privilegiado.
+    x = __get_CONTROL ();
+
+    // Actividad de debug: Ver registro "control" y valor de variable "x".
+    //__BKPT (0);
+
+    // En este punto, ejecutando en modo Thread no privilegiado, la unica forma
+    // de volver a modo privilegiado o de realizar cualquier cambio que requiera
+    // modo privilegiado, es pidiendo ese servicio a un hipotetico sistema
+    // opertivo de tiempo real.
+    // Para esto se invoca por software a la interrupcion SVC (Supervisor Call)
+    // utilizando la instruccion "svc".
+    // No hay intrinsics para realizar esta tarea. Para utilizar la instruccion
+    // es necesario implementar una funcion en assembler. Ver el archivo
+    // asm_func.S.
+    asm_svc ();
+
+    // El sistema operativo (el handler de SVC) deberia haber devuelto el modo
+    // de ejecucion de Thread a privilegiado (bit 0 en valor 0).
+    x = __get_CONTROL ();
+
+    // Fin del ejemplo de SVC
+}
+
+/**
   * @brief Inicializa un vector con zeros
   * @param
   * @retval None
   */
 void zeros(uint32_t * vector, uint32_t longitud)
 {
+	if (vector == NULL) Error_Handler();
 	for (uint32_t i=0; i<longitud; i++) {
 		vector[i] = 0;
 	}
@@ -373,48 +392,101 @@ void zeros(uint32_t * vector, uint32_t longitud)
   */
 void ones(uint32_t * vector, uint32_t longitud)
 {
+	if (vector == NULL) Error_Handler();
 	for (uint32_t i=0; i<longitud; i++) {
 		vector[i] = 1;
 	}
 }
 
 /**
-  * @brief Multiplica los elements de un vector
+  * @brief   Multiplica los elements de un vector
   * @param
-  * @retval None
+  * @retval  None
+  * @comment No analiza caso de desborde.
   */
 void productoEscalar32(uint32_t * vectorIn, uint32_t * vectorOut, uint32_t longitud, uint32_t escalar)
 {
+	if (vectorIn == NULL || vectorOut == NULL) Error_Handler();
 	for (uint32_t i=0; i<longitud; i++) {
 		vectorOut[i] = vectorIn[i] * escalar;
 	}
 }
 
 /**
-  * @brief Multiplica los elementos de un vector de uint16_t
+  * @brief   Multiplica los elementos de un vector de uint16_t
   * @param
-  * @retval None
+  * @retval  None
+  * @comment No analiza caso de desborde.
+  *
   */
 void productoEscalar16(uint16_t * vectorIn, uint16_t * vectorOut, uint32_t longitud, uint16_t escalar)
 {
+	if (vectorIn == NULL || vectorOut == NULL) Error_Handler();
 	for (uint32_t i=0; i<longitud; i++) {
 		vectorOut[i] = vectorIn[i] * escalar;
 	}
 }
 
 /**
-  * @brief Multiplica los elementos de un vector de uint16_t saturando en 12 bits.
+  * @brief   Multiplica los elementos de un vector de uint16_t saturando en 12 bits.
   * @param
-  * @retval None
+  * @retval  None
+  * @comment Satura los valores.
   */
 void productoEscalar12(uint16_t * vectorIn, uint16_t * vectorOut, uint32_t longitud, uint16_t escalar)
 {
 	uint32_t Out;
+	if (vectorIn == NULL || vectorOut == NULL) Error_Handler();
 	for (uint32_t i=0; i<longitud; i++) {
 		Out = (uint32_t) vectorIn[i] * (uint32_t) escalar;
 		vectorOut[i] = Out > 0xFFF ? 0xFFF : (uint16_t) Out;
 	}
 }
+
+/**
+  * @brief   Filtro ventana 11
+  * @param
+  * @retval  None
+  * @comment
+  */
+void filtroVentana10(uint16_t * vectorIn, uint16_t * vectorOut, uint32_t longitud)
+{
+	const int16_t Lateral = 10/2;	// Para una ventana de 10, tomo 5 de cada lado
+	if (vectorIn == NULL || vectorOut == NULL) Error_Handler();	// Algo alguna verificación...
+	if (longitud < Lateral) Error_Handler();
+	uint32_t i, j, min, max, ventana, prom;
+
+	for (i=0; i<longitud; i++) {
+		// min y max son los indices desde donde debe promediar, incluidos
+		min = Lateral>i ? 0 : i-Lateral;
+		max = (i+1+Lateral)>longitud ? (longitud-1) : i+Lateral;
+		ventana = max-min+1;
+		prom = 0;
+
+		for (j = min ; j <= max; j++) {
+			prom += vectorIn[j];
+		}
+		vectorOut[i] = prom / ventana;
+	}
+}
+
+/**
+  * @brief   Empaquetado
+  * @param
+  * @retval  None
+  * @comment
+  */
+void pack32to16 (int32_t * vectorIn, int16_t *vectorOut, uint32_t longitud)
+{
+	if (vectorIn == NULL || vectorOut == NULL) Error_Handler();
+	for (uint32_t i=0; i<longitud; i++) {
+		vectorOut[i] = vectorIn[i]>>16;
+	}
+}
+
+
+
+
 
 /* USER CODE END 4 */
 
@@ -432,6 +504,9 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
+
+
+
 
 #ifdef  USE_FULL_ASSERT
 /**
