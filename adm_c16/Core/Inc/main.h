@@ -54,6 +54,7 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 void zeros(uint32_t * vector, uint32_t longitud);
+void zeros16(uint16_t * vector, uint32_t longitud);
 void ones(uint32_t * vector, uint32_t longitud);
 void productoEscalar32(uint32_t * vectorIn, uint32_t * vectorOut, uint32_t longitud, uint32_t escalar);
 void productoEscalar16 (uint16_t * vectorIn, uint16_t * vectorOut, uint32_t longitud, uint16_t escalar);

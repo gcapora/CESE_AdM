@@ -44,7 +44,6 @@ static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 static void PrivilegiosSVC (void);
-void asm_zeros (uint32_t * vector, uint32_t longitud);   // Función en asembler
 
 /* USER CODE END PFP */
 
@@ -100,14 +99,14 @@ int main(void)
   // Asignación de valores...
   asm_zeros (senial1, N_MUESTRAS);   					// Función en Assembler
   ones(senial1, N_MUESTRAS);
-  productoEscalar32(senial1, senial2, N_MUESTRAS, 1);	// Esto equivale a copiar un vector en otro
-  for (uint8_t i=0; i<2; i++) {							// Ahora vamos a multiplicar su contenido por Resultado una cantidad de veces
-	  productoEscalar12(senial16, senial16, N_MUESTRAS, suma-1);
+  asm_productoEscalar32(senial1, senial2, N_MUESTRAS, 1);	// Esto equivale a copiar un vector en otro
+  for (uint8_t i=0; i<8; i++) {							// Ahora vamos a multiplicar su contenido por Resultado una cantidad de veces
+	  asm_productoEscalar12(senial16, senial16, N_MUESTRAS, suma-1);
   }
 
   // **************************************************************************
   // Prueba de promedio ventana
-  zeros(senial16, N_MUESTRAS);
+  zeros16(senial16, N_MUESTRAS);
   for (uint8_t i=5; i<N_MUESTRAS-1; i+=14) {
 	  senial16[i]=50;
 	  senial16[i+1]=50;
@@ -378,6 +377,19 @@ static void PrivilegiosSVC (void)
   * @retval None
   */
 void zeros(uint32_t * vector, uint32_t longitud)
+{
+	if (vector == NULL) Error_Handler();
+	for (uint32_t i=0; i<longitud; i++) {
+		vector[i] = 0;
+	}
+}
+
+/**
+  * @brief Inicializa un vector con zeros
+  * @param
+  * @retval None
+  */
+void zeros16(uint16_t * vector, uint32_t longitud)
 {
 	if (vector == NULL) Error_Handler();
 	for (uint32_t i=0; i<longitud; i++) {
