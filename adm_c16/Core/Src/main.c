@@ -118,8 +118,15 @@ int main(void)
 
   // **************************************************************************
   // Prueba máximo de indice
-  int32_t evaluame[10] = {0, 30, 30, 0, -4, -4, 5, 5, -200, -200};
-  int32_t indice = asm_max(evaluame, 10);
+  int32_t evaluame[10] = {1, 2, 3, 4, 3, 2, 1, 0, -1, -2};
+  uint32_t indice = asm_max(evaluame, 10);
+  t0 = indice;
+
+  // **************************************************************************
+  // Prueba de submuestreo
+  int32_t submuestreado[10];
+  asm_downsampleM (evaluame, submuestreado, 10, 3);
+
 
 
   /* USER CODE END 2 */

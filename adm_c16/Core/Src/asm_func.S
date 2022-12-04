@@ -12,6 +12,8 @@
 .global asm_filtroVentana10
 .global asm_pack32to16
 .global asm_max
+.global asm_downsampleM
+
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @ Prototipo en "C":
@@ -132,7 +134,7 @@
 			mul R4, R3			@ Multiplica R3xR4 y lo guarda en R4, que tiene 4 bytes
 			usat R4, #12, R4	@ Saturamos en 12 bits a R4
 			strh R4, [R1], #2	@ Ahora guardo el valor. Sólo 2 bytes.
-			subs R2, 1			@ Decremento el lardo del vector...
+			subs R2, #1			@ Decremento el lardo del vector...
 			bne asm_pe12_loop	@ A menos que R2 sea cero, vuelvo a asm_loop
 		pop {R4}
 		bx LR					@ Retornamos
@@ -271,4 +273,36 @@
 		bx LR			@ Retornamos
 
 
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ Prototipo en "C":
+@   void asm_downsampleM (int32_t * vectorIn, int32_t * vectorOut, uint32_t longitud, uint32_t N);
+@
+@ Parametros recibidos:
+@   R0: dirección de memoria de inicio del vector de entrada
+@   R1: dirección de memoria de inicio del vector de salida
+@   R2: longitud
+@   R3: se quita una muestra cada N=R3 muestras
+@
+@ Registros utilizados
+@	R4: cuenta para saltear muestra
+@	R5: valor leído del vector y luego guardado en el otro vector
+.thumb_func
+      asm_downsampleM:
+        push {R4-R5}			@ Guardo el registro en pila para recuperarlo luego
+        mov R4, R3				@ Inicializo cuenta regresiva de cuenta a saltear
 
+        @mov R4, #0				@ Inicialmente, supongo que el índice máximo es el primero
+        @mov R5, #0				@ Inicialmente, el valor máximo es #0
+        asm_downsampleM_loop:
+        	ldr R5, [R0], #4	@ Carga 4 bytes desde dirección de memoria [R0] en R5
+        						@ e incrementa R0 en 4 (porque tiene 4 bytes).
+        	subs R4, #1			@ Decremento la cuenta regresiva y veo si copio o no
+        	ITE NE
+        	strne R5, [R1], #4	@ Si R4>0, copio valor y aumento dirección de memoria destino.
+        	moveq R4, R3		@ Si R4==0, no copio pero reinicializo contador
+
+			subs R2, #1			@ Decrementa el contador de longitud
+			bne asm_downsampleM_loop	@ A menos que R2 sea cero, vuelvo al ciclo
+
+		pop {R4-R5}		@ Devuelvo registros
+		bx LR			@ Retornamos
