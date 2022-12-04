@@ -66,7 +66,10 @@ Su principal función es pasar parámetros a una función, almacenar sus valores
 
 Es un estandart de hardware y funciones para la arquitectura Cortex. Estandariza funciones que deben ser implementada en los Cortex para acceder a periféricos y recursos de hardware del micro. De este modo, se utilizan en C y no es necesario utilizar Assembler. Es un estandart establecido por ARM. Lo debe implementar cada fabricante de micro con arquitectura Cortex. La ventaja es que ayuda a migrar de un micro Cortex a otro. 
 
-15. Cuando ocurre una interrupción, asumiendo que está habilitada ¿Cómo opera el microprocesador para atender a la subrutina correspondiente? Explique con un ejemplo.
+### 15. Cuando ocurre una interrupción, asumiendo que está habilitada ¿Cómo opera el microprocesador para atender a la subrutina correspondiente? Explique con un ejemplo.
+
+Guarda los registros en la pila (stack) con push, para conservar el contexto anterior. Ejecuta la función de atención de la interrupción (ISR, interrupt service rutine). Devbuelve el contexto con pop. Y vuelve adonde estaba.
+
 17. ¿Cómo cambia la operación de stacking al utilizar la unidad de punto flotante?
 16. Explique las características avanzadas de atención a interrupciones: tail chaining y late arrival.
 
@@ -102,4 +105,6 @@ Los primeros 4 argumentos de una función, se reciben por los registros. Se carg
 
 Para los valores que devuelve utiliza los registros r0 y r1. También puede actuar sobre memoria directamente, utilizando punteros.
 
-5. ¿Qué es una instrucción SIMD? ¿En qué se aplican y que ventajas reporta su uso? Dé un ejemplo.
+### 5. ¿Qué es una instrucción SIMD? ¿En qué se aplican y que ventajas reporta su uso? Dé un ejemplo.
+
+Permiten operar varios datos a la vez. El micro lee y opera en 32 bits. Por lo tanto, si proceso un vector de datos de 8 bits, puedo operar de a 4. Esto lo hace entonces 4 veces más rápido que haciendo la operaciń con cada elemento por separado. 

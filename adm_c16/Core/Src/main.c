@@ -116,8 +116,6 @@ int main(void)
 
 
 
-
-
   uint32_t tiempo_de_procesamiento = HAL_GetTick() - t0;	// ¿Cuánto tardé?
 
   // **************************************************************************

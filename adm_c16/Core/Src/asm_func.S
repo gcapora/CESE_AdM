@@ -10,6 +10,7 @@
 .global asm_productoEscalar16
 .global asm_productoEscalar12
 .global asm_filtroVentana10
+.global asm_pack32to16
 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -129,7 +130,7 @@
         						@ e incrementa R0 en 2 (porque tiene 2 bytes).
         						@ Utilizo la función de leer de 16 bits sin signo.
 			mul R4, R3			@ Multiplica R3xR4 y lo guarda en R4, que tiene 4 bytes
-			usat R4, #11, R4	@ Saturamos en 12 bits a R4
+			usat R4, #12, R4	@ Saturamos en 12 bits a R4
 			strh R4, [R1], #2	@ Ahora guardo el valor. Sólo 2 bytes.
 			subs R2, 1			@ Decremento el lardo del vector...
 			bne asm_pe12_loop	@ A menos que R2 sea cero, vuelvo a asm_loop
@@ -142,44 +143,61 @@
 @   void asm_filtroVentana10(uint16_t * vectorIn, uint16_t * vectorOut, uint32_t longitudVectorIn);
 @
 @ Parametros recibidos:
-@   r0: dirección de memoria de inicio del vector de entrada
-@   r1: dirección de memoria de inicio del vector de salida
-@	r2: longitud
-.thumb_func               		@ Se avisa al emsablador que esta es una funcion
+@   R0: dirección de memoria de inicio del vector de entrada (no se modifica)
+@   R1: dirección de memoria de inicio del vector de salida  (no se modifica)
+@	R2: longitud (se traduce a cantidad de bytes totales del vector, menos 2)
+@
+@ Registros utilizados
+@	R3: desplazamiento (en bytes) para valor central de ventana leída y para escritura de promedio en salida
+@	R4: desplazamiento (en bytes) minimo para la ventana (se va aumentando recorriendo la ventana)
+@	R5: desplazamiento (en bytes) máximo para la ventana (que fijo para cada ventana)
+@	R6: guarda la suma de cada ventana y luego su promedio
+@   R7: valor leído desde la memoria del vector de entrada
+@   R8: ancho de la ventana (varía al inicio y fin de cada ventana) en indice
+@
+.thumb_func               		@ Se avisa al emsablador que esta es una funcion.
       asm_filtroVentana10:		@ Etiqueta/nombre de la función.
-        push {R4-R8}			@ Guardo el registro en pila para recuperarlo luego
-        mov R3, #0				@ Desplazamiento R3 se inicia en 0
-        						@ que luego irá subiendo
-        sub R2, 1				@ Le resto 1 a R2 porque, si hay sólo un elemento,
-        						@ no hay desplazamiento: dirección máxima es igual a a mínima
-        lsl R2, R2, 1			@ Multiplica por 2 al largo porque son dos bytes por índice.
+        push {R4-R8}			@ Guardo el registro en pila para recuperarlo luego.
+        mov R3, #0				@ Desplazamiento R3 se inicia en 0 que luego irá subiendo.
 
-        asm_fv10_loop:			@ Este loop está determinado por R2, que se va decrementando
+        @ Traducción de longitud en bytes
+        sub R2, 1				@ Le resto 1 a R2 porque, si hay sólo un elemento,
+        						@ no hay desplazamiento: dirección máxima es igual a la mínima.
+        lsl R2, R2, 1			@ Multiplica por 2 a longtud porque son dos bytes por índice.
+
+		@ Ciclo que recorre cada valor que se escribe en salida
+		@ Este loop está determinado por la longitud R2
+        asm_fv10_loop:
+        	@ Determinamos desplazamiento mínimo para la ventana
         	sub R4, R3, #10		@ R4 será el indice mínimo, 5 índices menos que R3
-        	cmp R3, #10			@ Vamos a comparar nuestro desplazamiento R3
-        						@ con el mínimo que no recorta la ventana
+        	cmp R3, #10			@ Vamos a comparar nuestro desplazamiento R3 con
+        						@ el mínimo que no recorta la ventana
         	it lo
         	movlo R4, #0		@ Si R3<10, hago que el mínimo desplazamiento a promediar sea 0
 
+			@ Determinamos desplazamiento máximo para la ventana
         	add R5, R3, #10		@ R5 será el desplazamiento máximo
         	cmp R5, R2			@ Comparo con el máximo permitido
         	it hs
         	movhs R5, R2		@ Pongo el máximo en R5 si R5>R2
 
+			@ Otros cálculos antes de recorrer la ventana
         	mov R6, #0			@ Inicializo en 0 la cuenta a promediar
         	sub R8, R5, R4		@ Calculo ancho de ventana
-        	lsr R8, R8, #1		@ Divido por dos
-        	add R8, R8, #1		@ Le sumo 1 porque así tengo en cuanta todas las sumas
+        	lsr R8, R8, #1		@ Divido por dos, porque el ancho debe estar en índices, no bytes
+        	add R8, R8, #1		@ Le sumo 1 porque así tengo en cuenta todas las sumas
 
+			@ Buble para sumar los valores de la ventana definida
         	asm_fv10_loop2:			@ Ahora puedo hacer el for...
         		ldrh R7, [R0, R4]	@ Carga 2 bytes desde dirección de memoria [R0+R4] en el registro R7
         		add R6, R6, R7		@ Le sumo este valor cargado a la cuenta a promedias R6
-        		cmp R4, R5			@ Comparo si ya son iguales o no.
+        		cmp R4, R5			@ Comparo si ya son iguales o no (si ya sumé todos los valores de la ventana).
         		add R4, #2			@ Incrementa R4 en 2 (porque cada ínidice tiene 2 bytes).
-        							@ Esta suma la hago desdepués de CMP porque
+        							@ Esta suma la hago después de CMP porque
         							@ tiene que ejecutarse una vez cuando son iguales.
-				bne asm_fv10_loop2	@ Salto si ya son iguales (y ya se ejecutó)
+				bne asm_fv10_loop2	@ Retomo loop2 mientas no sean iguales aún
 
+			@ Ahora promediamos y evaluamos si ya terminamos
 			udiv R6, R6, R8		@ Aquí viene el promedio!!!
 			strh R6, [R1, R3]	@ Ahora guardo el valor. Sólo 2 bytes.
 			cmp R3, R2			@ Comparo posición actual con el máximo permitido
@@ -187,4 +205,25 @@
 			bne asm_fv10_loop
 
 		pop {R4-R8}
+		bx LR					@ Retornamos
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ Prototipo en "C":
+@   void asm_pack32to16 (int32_t * vectorIn, int16_t *vectorOut, uint32_t longitud);
+@
+@ Parametros recibidos:
+@   R0: dirección de memoria de inicio del vector de entrada
+@   R1: dirección de memoria de inicio del vector de salida
+@	R2: longitud
+.thumb_func
+      asm_pack32to16:
+        @ push {R4}				@ Guardo el registro en pila para recuperarlo luego
+        asm_pack_loop:
+        	ldr R3, [R0], #4	@ Carga 4 bytes desde dirección de memoria [R0] en el registro R3,
+        						@ e incrementa R0 en 4 (porque tiene 4 bytes).
+			lsr R3, R3, #16		@ LogigShiftRigth, corro el registro 16 bits para empaquetar
+			strh R3, [R1], #2	@ Ahora guardo el valor. Sólo 2 bytes.
+			subs R2, 1			@ Decremento el largo del vector...
+			bne asm_pack_loop	@ A menos que R2 sea cero, vuelvo al ciclo
+		@ pop {R4}
 		bx LR					@ Retornamos
