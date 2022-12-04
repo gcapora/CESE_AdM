@@ -112,6 +112,7 @@ int main(void)
 	  senial16[i+1]=50;
   }
   asm_filtroVentana10(senial16, senial16b, N_MUESTRAS);	  // Probamos filtro ventana
+  asm_invertir (senial16b, N_MUESTRAS);
 
   uint32_t tiempo_de_procesamiento = HAL_GetTick() - t0;	// ¿Cuánto tardé?
   t0 = tiempo_de_procesamiento; // esto está sólo para qeu no moleste el warning

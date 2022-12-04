@@ -13,6 +13,7 @@
 .global asm_pack32to16
 .global asm_max
 .global asm_downsampleM
+.global asm_invertir
 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -189,7 +190,7 @@
         	lsr R8, R8, #1		@ Divido por dos, porque el ancho debe estar en índices, no bytes
         	add R8, R8, #1		@ Le sumo 1 porque así tengo en cuenta todas las sumas
 
-			@ Buble para sumar los valores de la ventana definida
+			@ Bucle para sumar los valores de la ventana definida
         	asm_fv10_loop2:			@ Ahora puedo hacer el for...
         		ldrh R7, [R0, R4]	@ Carga 2 bytes desde dirección de memoria [R0+R4] en el registro R7
         		add R6, R6, R7		@ Le sumo este valor cargado a la cuenta a promedias R6
@@ -306,3 +307,41 @@
 
 		pop {R4-R5}		@ Devuelvo registros
 		bx LR			@ Retornamos
+
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ Prototipo en "C":
+@   void asm_invertir (uint16_t * vector, uint32_t longitud);
+@
+@ Parametros recibidos:
+@   R0: dirección de memoria de inicio del vector de entrada/salida
+@		--> iremos incrementando para leer valores y mofificarlos
+@   R1: longitud
+@		--> lo transformamos en dirección última, que se irá decrementando y acercando a R0
+@
+@ Registros utilizados
+@	R2 y R3: valores leídos
+@
+.thumb_func
+	asm_invertir:
+        @ Transformo R1 de longitud a última dirección
+        sub R1, #1			@ índices empieza en #0
+        lsl R1, R1, #1		@ multiplico por 2 (2 bytes por valor)
+        add R1, R1, R0		@ última dirección
+
+        asm_invertir_loop:
+        	@ Leemos datos del vector
+        	ldrh R2, [R0]			@ Carga 2 bytes desde dirección de memoria [R0] en el registro R2
+        	ldrh R3, [R1]			@ Carga desde el final
+
+        	@ Escribimos datos invertidos
+			strh R3, [R0], #2		@ Ahora guardo el valor del final en el inicio. Y sumo 2 bytes.
+			strh R2, [R1], -2		@ Idem al revés
+
+			cmp R0, R1				@ Comparo ambas direcciones
+			blo asm_invertir_loop 	@ Mientras R0<R1, vuelvo al ciclo
+
+		bx LR						@ Retornamos
+
+
+
