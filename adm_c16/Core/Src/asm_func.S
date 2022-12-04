@@ -11,7 +11,7 @@
 .global asm_productoEscalar12
 .global asm_filtroVentana10
 .global asm_pack32to16
-
+.global asm_max
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @ Prototipo en "C":
@@ -227,3 +227,48 @@
 			bne asm_pack_loop	@ A menos que R2 sea cero, vuelvo al ciclo
 		@ pop {R4}
 		bx LR					@ Retornamos
+
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ Prototipo en "C":
+@   int32_t asm_max (int32_t * vectorIn, uint32_t longitud);
+@
+@ Parametros recibidos:
+@   R0: dirección de memoria de inicio del vector de entrada
+@   R1: longitud
+@
+@ Comentario:
+@	int32_t va desde -2147483648 a +2147483647
+@
+@ Registros utilizados
+@   R2: índice que se está evaluando
+@   R3: valor de ese índice
+@   R4: índice con el valor máximo
+@	R5: valor máximo actual
+@
+.thumb_func
+      asm_max:
+        push {R4-R5}			@ Guardo el registro en pila para recuperarlo luego
+        mov R2, #0				@ Primer índice evaluado
+        mov R4, #0				@ Inicialmente, supongo que el índice máximo es el primero
+        mov R5, #0				@ Inicialmente, el valor máximo es #0
+        asm_max_loop:
+        	ldr R3, [R0], #4	@ Carga 4 bytes desde dirección de memoria [R0] en el registro R3,
+        						@ e incrementa R0 en 4 (porque tiene 4 bytes).
+
+        	@ Bloque de comparación...
+			cmp R3, R5			@ Comparo lo leído con el máximo almacenado
+			ITT GT				@ Bloque IT cuando R3>R4 con signo
+			movgt R5, R3		@ Si se cumple, almaceno nuevo valor máximo
+			movgt R4, R2		@ Tengo un nuevo índice con valor máximo
+
+			add R2, 1			@ Incremento el índice a evauar
+			cmp R2, R1			@ Comparo índice con longitud
+			bne asm_max_loop	@ A menos que R2 sea cero, vuelvo al ciclo
+
+		mov R0, R4		@ Almaceno el índice con valor máximo en la salida
+		pop {R4-R5}		@ Devuelvo registros
+		bx LR			@ Retornamos
+
+
+

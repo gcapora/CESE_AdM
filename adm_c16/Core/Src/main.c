@@ -100,7 +100,7 @@ int main(void)
   asm_zeros (senial1, N_MUESTRAS);   					// Función en Assembler
   ones(senial1, N_MUESTRAS);
   asm_productoEscalar32(senial1, senial2, N_MUESTRAS, 1);	// Esto equivale a copiar un vector en otro
-  for (uint8_t i=0; i<8; i++) {							// Ahora vamos a multiplicar su contenido por Resultado una cantidad de veces
+  for (uint8_t i=0; i<4; i++) {							// Ahora vamos a multiplicar su contenido por Resultado una cantidad de veces
 	  asm_productoEscalar12(senial16, senial16, N_MUESTRAS, suma-1);
   }
 
@@ -113,12 +113,15 @@ int main(void)
   }
   asm_filtroVentana10(senial16, senial16b, N_MUESTRAS);	  // Probamos filtro ventana
 
-
-
-
   uint32_t tiempo_de_procesamiento = HAL_GetTick() - t0;	// ¿Cuánto tardé?
+  t0 = tiempo_de_procesamiento; // esto está sólo para qeu no moleste el warning
 
   // **************************************************************************
+  // Prueba máximo de indice
+  int32_t evaluame[10] = {0, 30, 30, 0, -4, -4, 5, 5, -200, -200};
+  int32_t indice = asm_max(evaluame, 10);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
