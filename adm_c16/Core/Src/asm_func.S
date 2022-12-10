@@ -14,6 +14,7 @@
 .global asm_max
 .global asm_downsampleM
 .global asm_invertir
+.global asm_corr
 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -344,4 +345,60 @@
 		bx LR						@ Retornamos
 
 
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ Prototipo en "C":
+@   void asm_corr (int16_t * vectorX, int16_t * vectorY, int16_t * vectorCorr, uint32_t N);
+@
+@ Parametros recibidos:
+@   R0: puntero del vector de entrada X
+@   R1: puntero del vector de entrada Y
+@	R2: puntero del vector correlación
+@	R3: N, longitud de los vectores (que luego traduzco a dirección fin de cálculo)
+@
+@ Registros utilizados:
+@	R4: resultado que se va calculando
+@   R5: valor de X
+@   R6: valor de Y
+@   R7: desplazamiento en vector X (direccion de memoria)
+@   R8: desplazamiento en vector Y (direccion de memoria)
+@
+.thumb_func               		@ Se avisa al emsablador que esta es una funcion
+      asm_corr: 				@ Etiqueta/nombre de la función.
+
+        push {R4-R8}			@ Guardo registros en pila para recuperarlo luego
+ 		cmp R3, 0				@ Si por casualidad me dan un vector sin contenido,
+		beq asm_corr_fin		@ salto al final directamente.
+
+        lsl R3, R3, #1			@ Multiplico longitud N por 2 para traducirlo de índice a bytes
+        add R3, R0, R3			@ Ahora R3 es la dirección final (excluyente) de vector X
+		mov R4, #0				@ Valor inicial del resultado
+
+        asm_corr_loop:
+		@ Correlación debe leer desde dirección R0 a R3
+			mov R7, R0			@ Desplazamiento R7 comienza en dirección R0 (que luego iremos subiendo)
+			mov R8, R1			@ Desplazamiento para recorrer vector Y
+
+			asm_corr_loop2:
+			@ R7 debe ir hasta dirección final R3
+
+        	ldrh R5, [R7]		@ Carga 2 bytes del vectorX en R5
+        	add  R7, R7, #2		@ Incremento desplazamiento R7 en dos bytes
+        						@ (luego iré subiendo R0 para ir corriendo la cuenta)
+        	ldrh R6, [R8], #2	@ Carga 2 bytes del vectorY en R6 e incremento en 2
+        	mla R4, R5, R6, R4	@ Multipliación acumulativa: R4 = R5*R6 + R4
+
+			cmp R7, R3
+			blo	asm_corr_loop2	@ Mientras R7 no llegue a ser R3, vuelvo a ejecutar loop2
+
+		@ Ya hice el cálculo de un valor de vectorCorr
+		@ Ahora lo almaceno
+		strh  R4, [R2], #2		@ Almaceno el cálculo R4 en dirección R2 (y aumento la dirección)
+		mov R4, #0				@ Valor inicial del resultado
+		add R0, R0, #2			@ Aumento un valor el inicio de vector X (no así con vector Y)
+		cmp R0, R3				@ Mientras R0 no llegue a ser R3, vuelvo a ejecutar loop
+		blo	asm_corr_loop
+
+		asm_corr_fin:			@ Fin de función
+		pop {R4-R8}
+		bx LR					@ Retornamos
 

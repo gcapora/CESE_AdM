@@ -128,6 +128,13 @@ int main(void)
   int32_t submuestreado[10];
   asm_downsampleM (evaluame, submuestreado, 10, 3);
 
+  // **************************************************************************
+  // Prueba de correlación
+  int16_t vectorX[]       = {0,  0, 0, 0, 10, -10, 10, 0, 0, 0};
+  int16_t vectorY[]       = {1, -1, 1, 0,  0,   0,  0, 0, 0, 0};
+  int16_t correlacion[10];
+  asm_corr (vectorX, vectorY, correlacion, 10);
+
 
 
   /* USER CODE END 2 */
