@@ -130,11 +130,11 @@ int main(void)
 
   // **************************************************************************
   // Prueba de correlación
-  int16_t vectorX[]       = {0,  0, 0, 0, 10, -10, 10, 0, 0, 0};
-  int16_t vectorY[]       = {1, -1, 1, 0,  0,   0,  0, 0, 0, 0};
-  int16_t correlacion[10];
-  asm_corr (vectorX, vectorY, correlacion, 10);
-
+  int16_t vectorX[]       = {0, 10, -10, 1, -1};
+  int16_t vectorY[]       = {1, -1,   0, 0, 0};
+  int16_t corr1[5], corr2[5];
+  asm_corr (vectorX, vectorY, corr1, 5);
+  asm_corr_SIMD (vectorX, vectorY, corr2, 5);
 
 
   /* USER CODE END 2 */
