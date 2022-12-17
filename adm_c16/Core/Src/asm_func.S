@@ -433,7 +433,8 @@
 		mov R4, #0				@ Valor inicial del resultado
 
         asm_corr_SIMD_loop:
-		@ Correlación debe leer desde dirección R0 a R3
+		@ Correlación: este ciclo va recorriendo todos los elementos del vector correlación (salida)
+		@ Para eso va leyendo desde dirección R0 a R3 en vector X e incrementando el puntero R2 (del vector correlación)
 			mov R7, R0			@ Desplazamiento R7 comienza en dirección R0 (que luego iremos subiendo)
 			mov R8, R1			@ Desplazamiento para recorrer vector Y
 

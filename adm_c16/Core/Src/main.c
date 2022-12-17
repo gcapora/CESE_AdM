@@ -27,7 +27,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define N_MUESTRAS		15
+#define N_MUESTRAS		1024
 
 /* USER CODE END PM */
 
@@ -70,6 +70,10 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
   /* USER CODE BEGIN SysInit */
+
+  // Activa contador de ciclos (iniciar una sola vez)
+  DWT->CTRL |= 1 << DWT_CTRL_CYCCNTENA_Pos;
+
   /* USER CODE END SysInit */
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
@@ -78,14 +82,20 @@ int main(void)
   /* USER CODE BEGIN 2 */
   // **************************************************************************
   // Variables locales a Main: (guardadas en la pila)
+  volatile uint32_t Ciclos;
+  const uint8_t TextoEnC[] = "4) Ciclos en C de fn saturacion: ";
+  const uint8_t TextoEnA[] = "4) Ciclos en Assembler de fn saturacion: ";
+  const uint8_t TextoDebug[] = "Compilado en modo Debug.";
+  const uint8_t TextoRelease[] = "Compilado en modo Release.";
+
   uint32_t senial1[N_MUESTRAS];
   uint32_t senial2[N_MUESTRAS];
   uint16_t senial16[N_MUESTRAS];
   uint16_t senial16b[N_MUESTRAS];
   senial1[N_MUESTRAS-1] = 99;
   senial16[0] = 1;
-  for (uint8_t i=1; i<N_MUESTRAS; i++) {
-  	  senial16[i] = senial16[i-1] + 1;
+  for (uint32_t i=0; i<N_MUESTRAS; i++) {
+  	  senial16[i] = i;
   }
 
   // **************************************************************************
@@ -95,14 +105,50 @@ int main(void)
 
   uint32_t t0 = HAL_GetTick();							// Tomo tiempo inicial de procesamiento
   // **************************************************************************
-  // Inicio prueba d eproductos escalares
+  // Inicio prueba de productos escalares
   // Asignación de valores...
   asm_zeros (senial1, N_MUESTRAS);   					// Función en Assembler
   ones(senial1, N_MUESTRAS);
   asm_productoEscalar32(senial1, senial2, N_MUESTRAS, 1);	// Esto equivale a copiar un vector en otro
-  for (uint8_t i=0; i<4; i++) {							// Ahora vamos a multiplicar su contenido por Resultado una cantidad de veces
+
+  // **************************************************************************
+  // Problema 4 contando ciclos:
+
+  // Antes de la función a medir: contador de ciclos a cero
+  DWT->CYCCNT = 0;
+  #ifdef DEBUG
+  EnviaTextoNumero ( (uint8_t *) TextoDebug, 0);
+  #else
+  EnviaTextoNumero ( (uint8_t *) TextoRelease, 0);
+  #endif
+
+
+  // Vamos a multiplicar el contenido de senial16 por un valor algunas veces
+  for (uint32_t i=0; i<4; i++) {
+  	  productoEscalar12(senial16, senial16, N_MUESTRAS, 3);
+  }
+
+  // Mido la cantidad de ciclos
+  Ciclos = DWT->CYCCNT;
+  EnviaTextoNumero ( (uint8_t *) TextoEnC, (uint32_t) Ciclos);
+
+  // Ahora en Assembler...
+  // Primero asigno el mismo valor:
+  for (uint32_t i=0; i<N_MUESTRAS; i++) {
+  	  senial16[i] = i;
+  }
+
+  // Contador de ciclos a cero
+  DWT->CYCCNT = 0;
+
+  // Vamos a multiplicar el contenido de senial16 por un valor algunas veces
+  for (uint32_t i=0; i<4; i++) {							// Ahora vamos a multiplicar su contenido por Resultado una cantidad de veces
 	  asm_productoEscalar12(senial16, senial16, N_MUESTRAS, suma-1);
   }
+
+  // Mido la cantidad de ciclos
+  Ciclos = DWT->CYCCNT;
+  EnviaTextoNumero ( (uint8_t *) TextoEnA, (uint32_t) Ciclos);
 
   // **************************************************************************
   // Prueba de promedio ventana
@@ -512,7 +558,23 @@ void pack32to16 (int32_t * vectorIn, int16_t *vectorOut, uint32_t longitud)
 	}
 }
 
+void EnviaTextoNumero ( uint8_t * Texto, uint32_t Numero)
+{
+	uint8_t NumeroEnTexto[20];
+	itoa ((int) Numero, (char *) NumeroEnTexto, (int) 10);
+	uint32_t Largo = strlen( (char *) Texto);
 
+	// Primero transmito el texto:
+	HAL_UART_Transmit(&huart3, (uint8_t *) Texto, Largo, 0x04FF);
+
+	// Luego el número:
+	Largo = strlen( (char * ) NumeroEnTexto);
+	HAL_UART_Transmit(&huart3, (uint8_t *) NumeroEnTexto, Largo, 0x04FF);
+
+	// Hago return + line feed
+	HAL_UART_Transmit(&huart3, (uint8_t *) "\n\r", 2, 0x04FF);
+
+}
 
 
 

@@ -32,7 +32,9 @@ Es una arquitectura en la que casi todas (menos 2) sus instrucciones sólo actú
 
 La memoria del Cortex dispone 4 Gb: asignados con 32 bits. En estos 4 Gb se puede leer y escribir memoria SRAM (ultra rápida, cercana al micro), RAM (datos), Flash (programa), puertos externos y otro tipo de mapeos como el el bit-banding. Cada función o tipo de acceso tiene un rango de memoria exclusivo y determinado por ARM.
 
-5. ¿Qué ventajas presenta el uso de los “shadowed pointers” del PSP y el MSP?
+### 5. ¿Qué ventajas presenta el uso de los “shadowed pointers” del PSP y el MSP?
+
+Son "registros en las sombras" porque no se pueden acceder directamente. Por ejemplo, se puede seleccionar en el bit 2 del registro LR de retorno. Process Stack Pointer indica la dirección de un proceso o tarea. Main Stack Pointer se utiliza para el scheduler (planificador) del sistema operativo.
 
 ### 6. Describa los diferentes modos de privilegio y operación del Cortex M, sus relaciones y como se conmuta de uno al otro. Describa un ejemplo en el que se pasa del modo privilegiado a no priviligiado y nuevamente a privilegiado.
 
@@ -52,15 +54,27 @@ Básicamente que no debe cambiar la dirección de ejecución del código, cuesti
 
 Ejemplo en C (en verdad debería codificarse en Assembler): a = r>29 ? 29 : r; En ese ejemplo, se pierde demasiado tiempo si el procesamiento de código de be cambiar de dirección para hacer esta comparación tan simple.
 
-9. Describa brevemente las excepciones más prioritarias (reset, NMI, Hardfault).
+### 9. Describa brevemente las excepciones más prioritarias (reset, NMI, Hardfault).
+
+Reset: Reinicia todo, con máxima prioridad, sin que nada pueda evitarlo.
+Hardfault: Cuando hay alguna falla de hardware (cuando hay baja tensión, por ejemplo).
+NMI: Interrupción importante que no se puede desactivar.
 
 ### 10. Describa las funciones principales de la pila. ¿Cómo resuelve la arquitectura el llamado a funciones y su retorno?
 
 Su principal función es pasar parámetros a una función, almacenar sus valores durante su operación y devolverlos. Aunque, en ARM, los primeros parámetros son pasados y devueltos a través de los registros r0 a r3. 
 
-11. Describa la secuencia de reset del microprocesador.
-12. ¿Qué entiende por “core peripherals”? ¿Qué diferencia existe entre estos y el resto de los periféricos?
-13. ¿Cómo se implementan las prioridades de las interrupciones? Dé un ejemplo.
+### 11. Describa la secuencia de reset del microprocesador.
+
+El evento Reset ocurre apenas se energiza el micro. Lee dirección 0 y se lo asigna a MSP. Lee el vector de Reset y empieza la ejecución de instrucciones. Entonces, en las funciones programdas por ST, pone en cero determinadas variables y asigna valores a las variables static. Ejecuta SystemInit, que inicializa memoria externa, por ejemplo. 
+
+### 12. ¿Qué entiende por “core peripherals”? ¿Qué diferencia existe entre estos y el resto de los periféricos?
+
+"Core peripherals" son módulos integrados al core para agilizar su funcionamiento: NVIC (Nested Vectored Interrupt Controller), System Control Block, System timer, Memory Protection Unit. El resto de los periféricos necesariamente utilizan el bus de datos (ram) y de programa (flash).
+
+### 13. ¿Cómo se implementan las prioridades de las interrupciones? Dé un ejemplo.
+
+Están definidas en el vector de interrupciones. Se ejecuta primero la más prioritaria y se van resolviendo luego las menos. Si una menos prioritaria se llama dos veces mientras una más prioritaria se está ejecutando, se pierde el doble llamado. Sólo se ejecuta una vez cuando le toque. Algunas prioridades están definidas por ARM, otras por el fabricante, y otras por el programador.
 
 ### 14. ¿Qué es el CMSIS? ¿Qué función cumple? ¿Quién lo provee? ¿Qué ventajas aporta?
 
@@ -68,10 +82,16 @@ Es un estandart de hardware y funciones para la arquitectura Cortex. Estandariza
 
 ### 15. Cuando ocurre una interrupción, asumiendo que está habilitada ¿Cómo opera el microprocesador para atender a la subrutina correspondiente? Explique con un ejemplo.
 
-Guarda los registros en la pila (stack) con push, para conservar el contexto anterior. Ejecuta la función de atención de la interrupción (ISR, interrupt service rutine). Devbuelve el contexto con pop. Y vuelve adonde estaba.
+Entra en un estado de exceptción y guarda los registros en la pila (stack) con push, para conservar el contexto actual que se estaba ejecutando. Antes de terminar de hacer pop, ya va leyendo el vector de interrupciones para ver que ISR debe ejecutar. Va llenanndo el pipeline para ejecutar la función de atención de la interrupción (ISR, interrupt service rutine) inmediatamente luego de terminar de hacer pop. Ejecuta. Devuelve el contexto con pop. Y vuelve adonde estaba.
 
-17. ¿Cómo cambia la operación de stacking al utilizar la unidad de punto flotante?
-16. Explique las características avanzadas de atención a interrupciones: tail chaining y late arrival.
+### 17. ¿Cómo cambia la operación de stacking al utilizar la unidad de punto flotante?
+
+Se fija si estamos usando punto flotante en el registro FPCA. Si es así, guardo registros extras de uso de punto flotante. Son dos o tres veces más registros. Por eso, no conviene utilizar FPU en un manejador de interrupción.
+
+### 16. Explique las características avanzadas de atención a interrupciones: tail chaining y late arrival.
+
+Tail chaining: Si debe atender otra interrupción luego de haber ejecutado una, no devuelve el contexto sino que sigue con a ejecución de la otra interrupción (de igual o menor prioridad). Y devolver el contexto cuando hayan terminado las interrupciones. 
+Late arrival: Empezó una interrupción de baja prioridad. Si entra una de más prioridad cuando aún estamos en apilado de contexto, el llamado va a atender la de mayor prioridad.
 
 ### 17. ¿Qué es el systick? ¿Por qué puede afirmarse que su implementación favorece la portabilidad de los sistemas operativos embebidos?
 
@@ -82,8 +102,14 @@ Es un conjunto de funciones que opera una base de tiempo. El hecho que diversos 
 Bloquea la posibilidad de escribir determinadas partes de memoria cuando se trabaja em modo no-privilegiado. Esto es una protección para que un proceso determinado no modifique áreas de memoria críticas que no debe modificar.
 
 20. ¿Cuántas regiones pueden configurarse como máximo? ¿Qué ocurre en caso de haber solapamientos de las regiones? ¿Qué ocurre con las zonas de memoria no cubiertas por las regiones definidas?
-20. ¿Para qué se suele utilizar la excepción PendSV? ¿Cómo se relaciona su uso con el resto de las excepciones? Dé un ejemplo.
-21. ¿Para qué se suele utilizar la excepción SVC? Expliquelo dentro de un marco de un sistema operativo embebido.
+
+### 20. ¿Para qué se suele utilizar la excepción PendSV? ¿Cómo se relaciona su uso con el resto de las excepciones? Dé un ejemplo.
+
+PendSV (Pendable SerVice) es una interrupción que es usada por el sistema operativo (OS) para forzar un cambio de contexto, si no hay otra interrupción activa. 
+
+### 21. ¿Para qué se suele utilizar la excepción SVC? Expliquelo dentro de un marco de un sistema operativo embebido.
+
+SVCall (SuperVisor Call) es llamada por la instrucción SVC. Es usada, por ejemplo, por FreeRTOS para iniciar el planificador (scheduler).
 
 ## ISA (Instruction Set Architecture)
 
