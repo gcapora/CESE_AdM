@@ -29,6 +29,7 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 #include <string.h>
+#include <stdlib.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -62,7 +63,9 @@ void productoEscalar16 (uint16_t * vectorIn, uint16_t * vectorOut, uint32_t long
 void productoEscalar12 (uint16_t * vectorIn, uint16_t * vectorOut, uint32_t longitud, uint16_t escalar);
 void filtroVentana10(uint16_t * vectorIn, uint16_t * vectorOut, uint32_t longitudVectorIn);
 void pack32to16 (int32_t * vectorIn, int16_t *vectorOut, uint32_t longitud);
+void corr (int16_t * vectorX, int16_t * vectorY, int16_t * vectorCorr, uint32_t longitud);
 void EnviaTextoNumero ( uint8_t * Texto, uint32_t Numero);
+void EnviaTexto ( uint8_t * Texto);
 
 /* USER CODE END EFP */
 

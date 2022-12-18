@@ -83,28 +83,34 @@ int main(void)
   // **************************************************************************
   // Variables locales a Main: (guardadas en la pila)
   volatile uint32_t Ciclos;
-  const uint8_t TextoEnC[] = "4) Ciclos en C de fn saturacion: ";
-  const uint8_t TextoEnA[] = "4) Ciclos en Assembler de fn saturacion: ";
-  const uint8_t TextoDebug[] = "Compilado en modo Debug.";
-  const uint8_t TextoRelease[] = "Compilado en modo Release.";
-
+  uint32_t i;
   uint32_t senial1[N_MUESTRAS];
   uint32_t senial2[N_MUESTRAS];
   uint16_t senial16[N_MUESTRAS];
   uint16_t senial16b[N_MUESTRAS];
+
   senial1[N_MUESTRAS-1] = 99;
   senial16[0] = 1;
-  for (uint32_t i=0; i<N_MUESTRAS; i++) {
+  for (i=0; i<N_MUESTRAS; i++) {
   	  senial16[i] = i;
   }
 
   // **************************************************************************
-  // Prueba de modos de privilegio
+  // Mensaje con el modo de compilación
+  EnviaTexto ( (uint8_t *) "---------------------------------------------------------");
+  #ifdef DEBUG
+  EnviaTexto ( (uint8_t *) "Compilado en modo DEBUG.");
+  #else
+  EnviaTexto ( (uint8_t *) "Compilado en modo RELEASE.");
+  #endif
+
+  // **************************************************************************
+  // 0) Prueba de modos de privilegio
   PrivilegiosSVC ();
   const uint32_t suma = asm_sum (5, 3);
 
-  uint32_t t0 = HAL_GetTick();							// Tomo tiempo inicial de procesamiento
   // **************************************************************************
+  // 1) Fn zeros
   // Inicio prueba de productos escalares
   // Asignación de valores...
   asm_zeros (senial1, N_MUESTRAS);   					// Función en Assembler
@@ -112,29 +118,24 @@ int main(void)
   asm_productoEscalar32(senial1, senial2, N_MUESTRAS, 1);	// Esto equivale a copiar un vector en otro
 
   // **************************************************************************
-  // Problema 4 contando ciclos:
+  // 4) Multiplicación de vector por escalar con saturación de 12 bits
+  // ¡¡¡Contando ciclos!!!
 
   // Antes de la función a medir: contador de ciclos a cero
   DWT->CYCCNT = 0;
-  #ifdef DEBUG
-  EnviaTextoNumero ( (uint8_t *) TextoDebug, 0);
-  #else
-  EnviaTextoNumero ( (uint8_t *) TextoRelease, 0);
-  #endif
-
 
   // Vamos a multiplicar el contenido de senial16 por un valor algunas veces
-  for (uint32_t i=0; i<4; i++) {
+  for (i=0; i<4; i++) {
   	  productoEscalar12(senial16, senial16, N_MUESTRAS, 3);
   }
 
   // Mido la cantidad de ciclos
   Ciclos = DWT->CYCCNT;
-  EnviaTextoNumero ( (uint8_t *) TextoEnC, (uint32_t) Ciclos);
+  EnviaTextoNumero ( (uint8_t *) "4) Ciclos de fn multiplicacion con saturacion en C = ", (uint32_t) Ciclos);
 
   // Ahora en Assembler...
   // Primero asigno el mismo valor:
-  for (uint32_t i=0; i<N_MUESTRAS; i++) {
+  for (i=0; i<N_MUESTRAS; i++) {
   	  senial16[i] = i;
   }
 
@@ -142,46 +143,74 @@ int main(void)
   DWT->CYCCNT = 0;
 
   // Vamos a multiplicar el contenido de senial16 por un valor algunas veces
-  for (uint32_t i=0; i<4; i++) {							// Ahora vamos a multiplicar su contenido por Resultado una cantidad de veces
+  for (i=0; i<4; i++) {							// Ahora vamos a multiplicar su contenido por Resultado una cantidad de veces
 	  asm_productoEscalar12(senial16, senial16, N_MUESTRAS, suma-1);
   }
 
   // Mido la cantidad de ciclos
   Ciclos = DWT->CYCCNT;
-  EnviaTextoNumero ( (uint8_t *) TextoEnA, (uint32_t) Ciclos);
+  EnviaTextoNumero ( (uint8_t *) "4) Ciclos de fn multiplicacion con saturacion en Assembler = ", (uint32_t) Ciclos);
 
   // **************************************************************************
-  // Prueba de promedio ventana
+  // 5) Promedio ventana
   zeros16(senial16, N_MUESTRAS);
-  for (uint8_t i=5; i<N_MUESTRAS-1; i+=14) {
+  for (i=5; i<N_MUESTRAS-1; i+=14) {
 	  senial16[i]=50;
 	  senial16[i+1]=50;
   }
   asm_filtroVentana10(senial16, senial16b, N_MUESTRAS);	  // Probamos filtro ventana
   asm_invertir (senial16b, N_MUESTRAS);
 
-  uint32_t tiempo_de_procesamiento = HAL_GetTick() - t0;	// ¿Cuánto tardé?
-  t0 = tiempo_de_procesamiento; // esto está sólo para qeu no moleste el warning
-
   // **************************************************************************
-  // Prueba máximo de indice
+  // 7) Prueba máximo de indice
   int32_t evaluame[10] = {1, 2, 3, 4, 3, 2, 1, 0, -1, -2};
-  uint32_t indice = asm_max(evaluame, 10);
-  t0 = indice;
+  uint32_t indice;
+  indice = asm_max(evaluame, 10);
+  EnviaTextoNumero ( (uint8_t *) "7) Indice maximo es ", (uint32_t) indice);
 
   // **************************************************************************
-  // Prueba de submuestreo
+  // 8) Prueba de submuestreo
   int32_t submuestreado[10];
   asm_downsampleM (evaluame, submuestreado, 10, 3);
 
   // **************************************************************************
-  // Prueba de correlación
-  int16_t vectorX[]       = {0, 10, -10, 1, -1};
-  int16_t vectorY[]       = {1, -1,   0, 0, 0};
-  int16_t corr1[5], corr2[5];
-  asm_corr (vectorX, vectorY, corr1, 5);
-  asm_corr_SIMD (vectorX, vectorY, corr2, 5);
+  // Problema 11) Prueba de correlación
+  int16_t vectorX[N_MUESTRAS], vectorY[N_MUESTRAS], corr1[N_MUESTRAS], corr2[N_MUESTRAS];
 
+  for ( i=0; i<N_MUESTRAS; i++) {
+	  vectorX[i] = 0;
+	  vectorY[i] = 0;
+	  if (i == 0) {
+		  vectorY[i] = 1;
+	  } else if (i < 5) {
+		  vectorY[i] = vectorY[i-1] * (-3);
+	  } else {
+		  vectorY[i] = vectorY[i-1] / (-2);
+	  }
+	  if (i>=512) {
+		  vectorX[i] = vectorY[i-512];
+	  }
+  }
+
+  // Pruebo en Assembler sin SIMD
+  DWT->CYCCNT = 0; 									// Contador de ciclos a cero
+  corr (vectorX, vectorY, corr2, N_MUESTRAS);		// Ejecuto...
+  Ciclos = DWT->CYCCNT;								// Mido la cantidad de ciclos
+  EnviaTextoNumero ( (uint8_t *) "11) Ciclos de fn correlacion en C = ", (uint32_t) Ciclos);
+
+  // Pruebo en Assembler sin SIMD
+  DWT->CYCCNT = 0; 									// Contador de ciclos a cero
+  asm_corr (vectorX, vectorY, corr1, N_MUESTRAS);	// Ejecuto...
+  Ciclos = DWT->CYCCNT;								// Mido la cantidad de ciclos
+  EnviaTextoNumero ( (uint8_t *) "11) Ciclos de fn correlacion en Assembler sin SIMD = ", (uint32_t) Ciclos);
+
+  // Pruebo en Assembler sin SIMD
+  DWT->CYCCNT = 0; 									// Contador de ciclos a cero
+  asm_corr_SIMD (vectorX, vectorY, corr2, N_MUESTRAS);	// Ejecuto...
+  Ciclos = DWT->CYCCNT;								// Mido la cantidad de ciclos
+  EnviaTextoNumero ( (uint8_t *) "11) Ciclos de fn correlacion en Assembler con SIMD = ", (uint32_t) Ciclos);
+
+  // **************************************************************************
 
   /* USER CODE END 2 */
 
@@ -558,6 +587,20 @@ void pack32to16 (int32_t * vectorIn, int16_t *vectorOut, uint32_t longitud)
 	}
 }
 
+void corr (int16_t * vectorX, int16_t * vectorY, int16_t * vectorCorr, uint32_t longitud)
+{
+	uint32_t Suma = 0;
+	for (uint32_t i=0; i<longitud; i++) {
+		for (uint32_t j=i; j<longitud; j++) {
+			Suma += vectorY[j-i]*vectorX[i];
+		}
+		vectorCorr[i] = Suma;
+		Suma = 0;
+	}
+}
+
+
+
 void EnviaTextoNumero ( uint8_t * Texto, uint32_t Numero)
 {
 	uint8_t NumeroEnTexto[20];
@@ -576,7 +619,17 @@ void EnviaTextoNumero ( uint8_t * Texto, uint32_t Numero)
 
 }
 
+void EnviaTexto ( uint8_t * Texto)
+{
+	uint32_t Largo = strlen( (char *) Texto);
 
+	// Primero transmito el texto:
+	HAL_UART_Transmit(&huart3, (uint8_t *) Texto, Largo, 0x04FF);
+
+	// Hago return + line feed
+	HAL_UART_Transmit(&huart3, (uint8_t *) "\n\r", 2, 0x04FF);
+
+}
 
 /* USER CODE END 4 */
 
