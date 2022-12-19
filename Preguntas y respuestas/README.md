@@ -101,7 +101,9 @@ Es un conjunto de funciones que opera una base de tiempo. El hecho que diversos 
 
 Bloquea la posibilidad de escribir determinadas partes de memoria cuando se trabaja em modo no-privilegiado. Esto es una protección para que un proceso determinado no modifique áreas de memoria críticas que no debe modificar.
 
-20. ¿Cuántas regiones pueden configurarse como máximo? ¿Qué ocurre en caso de haber solapamientos de las regiones? ¿Qué ocurre con las zonas de memoria no cubiertas por las regiones definidas?
+### 19. ¿Cuántas regiones pueden configurarse como máximo? ¿Qué ocurre en caso de haber solapamientos de las regiones? ¿Qué ocurre con las zonas de memoria no cubiertas por las regiones definidas?
+
+En la MPU se pueden definir hasta 8 regiones de memoria, con diferente tamaño, direcciones de inicio y configuraciones especificas. Si el micro trabaja en modo no privilegiado y el MPU esta activado, todo acceso a memoria que no se encuentre en una es estas posibles regiones va a generar un fallo. Toda región que no esté dentro de estas 8 regiones sólo podría accederse en modo privilegiado.
 
 ### 20. ¿Para qué se suele utilizar la excepción PendSV? ¿Cómo se relaciona su uso con el resto de las excepciones? Dé un ejemplo.
 
